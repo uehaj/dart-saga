@@ -1,0 +1,7 @@
+name: dart_saga
+description: Port of redux-saga to Dart.
+version: 0.1.0
+author: Uehara Junji <uehaj@jggug.org>
+homepage: https://github.com/uehaj/dart-saga
+environment:
+  sdk: ">=2.0.0-dev.32.0 <3.0.0"
