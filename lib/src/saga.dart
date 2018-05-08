@@ -30,16 +30,13 @@ class _EffectDispatcher {
       } else if (effect is TakeEveryEffect) {
         /**/
       } else if (effect is ForkEffect) {
-        _Task newTask = await (this.run(effect.saga, effect.params));
-        // send back forked task id to the saga as a result of ForkEffect.
-        task.send(newTask.taskId);
+        this._fork(effect, task);
       } else if (effect is CancelEffect) {
-        _Task._taskMap[effect.taskId]?.cancel();
+        this._cancel(effect);
       }
     }
   }
 
-  // running on parent isolate
   void _put(PutEffect effect) {
     if (_waitingTasks[effect.action.type] != null) {
       for (var waitingSaga in _waitingTasks[effect.action.type]) {
@@ -49,13 +46,22 @@ class _EffectDispatcher {
     }
   }
 
-  // running on parent isolate
   void _take(TakeEffect effect, _Task task) {
     if (_waitingTasks[effect.action.type] == null) {
       _waitingTasks[effect.action.type] = [task];
     } else {
       _waitingTasks[effect.action.type].add(task);
     }
+  }
+
+  void _fork(ForkEffect effect, _Task task) async {
+    _Task newTask = await (this.run(effect.saga, effect.params));
+    // send back forked task id to the saga as a result of ForkEffect.
+    task.send(newTask.taskId);
+  }
+
+  void _cancel(CancelEffect effect) {
+    _Task._taskMap[effect.taskId]?.cancel();
   }
 }
 
