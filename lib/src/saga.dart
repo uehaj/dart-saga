@@ -2,6 +2,8 @@ import "dart:async";
 import "dart:isolate";
 import './effect.dart';
 
+typedef EffectHandler(StreamIterator itr);
+
 class _EffectDispatcher {
   Map<String, List<_Task>> _waitingTasks;
 
@@ -16,7 +18,7 @@ class _EffectDispatcher {
     }
 
     // running on parent isolate
-    this._task = new _Task(saga, param)..start().then(this._handleEvent);
+    this._task = new _Task(saga, this._handleEvent, param)..start();
   }
 
   void _handleEvent(StreamIterator itr) async {
@@ -75,12 +77,14 @@ class _Task {
 
   SendPort _sendToChildPort;
 
+  EffectHandler _handleEvent;
+
   void send(msg) {
     this._sendToChildPort.send(msg);
   }
 
   // still running on parent isolate
-  _Task(Saga saga, [Object param]) {
+  _Task(Saga saga, EffectHandler this._handleEvent, [Object param]) {
     this.taskId = _Task._taskIdSeed++;
     _Task._taskMap[this.taskId] = this;
 
@@ -91,7 +95,7 @@ class _Task {
   }
 
   // still running on parent isolate
-  Future<StreamIterator> start() async {
+  Future start() async {
     ReceivePort onExitPort = new ReceivePort();
     onExitPort.listen((x) {
       print("onExitCheck: ${x}");
@@ -111,7 +115,7 @@ class _Task {
     } else {
       throw new Exception("Illegal stream state.");
     }
-    return itr;
+    return new Future.value(itr).then(this._handleEvent);
   }
 
   // now running on child isolate
