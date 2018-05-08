@@ -25,7 +25,7 @@ Iterable<Effect> saga2([msg]) sync* {
   int i = 0;
   while (true) {
     print("           saga2");
-    yield new WaitEffect(3);
+    yield new WaitEffect(1);
     yield new PutEffect(new Action("HOGE"));
 //    if (i++ == 10) {
 //      yield new CancelEffect(saga2contextFuture);

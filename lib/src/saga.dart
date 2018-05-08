@@ -2,40 +2,38 @@ import "dart:async";
 import "dart:isolate";
 import './effect.dart';
 
-typedef EffectHandler(StreamIterator itr);
+typedef EffectHandler(StreamIterator itr, _Task task);
 
 class _EffectDispatcher {
   Map<String, List<_Task>> _waitingTasks;
 
-  _Task _task;
-
-  // running on parent isolate
-  _EffectDispatcher(Saga saga, param, [waitingTasks]) {
-    if (waitingTasks != null) {
-      this._waitingTasks = waitingTasks;
-    } else {
+  _EffectDispatcher([waitingTasks]) {
+    if (waitingTasks == null) {
       this._waitingTasks = {};
+    } else {
+      this._waitingTasks = waitingTasks;
     }
-
-    // running on parent isolate
-    this._task = new _Task(saga, this._handleEvent, param)..start();
   }
 
-  void _handleEvent(StreamIterator itr) async {
-    // effects which yielded from the saga (child isolate)
+  Future<_Task> run(saga, param) async =>
+      new _Task(saga, this._handleEvent, param)..start();
+
+  void _handleEvent(StreamIterator itr, _Task task) async {
+    // effects which received from child isolate through Port.
     while (await itr.moveNext()) {
       Effect effect = itr.current;
 
       if (effect is PutEffect) {
         this._put(effect);
       } else if (effect is TakeEffect) {
-        this._take(effect, this._task);
+        this._take(effect, task);
       } else if (effect is TakeEveryEffect) {
         /**/
       } else if (effect is ForkEffect) {
-        _EffectDispatcher tmp = new _EffectDispatcher(
-            effect.saga, effect.param, this._waitingTasks);
-        this._task.send(tmp._task.taskId);
+        _Task newTask = await (this.run(effect.saga, effect.param));
+        // await task.start();
+        // send back forked ask id to saga as a result of ForkEffect.
+        task.send(newTask.taskId);
       } else if (effect is CancelEffect) {
         _Task._taskMap[effect.taskId]?.cancel();
       }
@@ -80,7 +78,9 @@ class _Task {
   EffectHandler _handleEvent;
 
   void send(msg) {
-    this._sendToChildPort.send(msg);
+    if (this._sendToChildPort != null) {
+      this._sendToChildPort.send(msg);
+    }
   }
 
   // still running on parent isolate
@@ -95,7 +95,7 @@ class _Task {
   }
 
   // still running on parent isolate
-  Future start() async {
+  Future<_Task> start() async {
     ReceivePort onExitPort = new ReceivePort();
     onExitPort.listen((x) {
       print("onExitCheck: ${x}");
@@ -115,7 +115,8 @@ class _Task {
     } else {
       throw new Exception("Illegal stream state.");
     }
-    return new Future.value(itr).then(this._handleEvent);
+    this._handleEvent(itr, this);
+    return this;
   }
 
   // now running on child isolate
@@ -130,7 +131,7 @@ class _Task {
     // send sendPort to parent isolate for bi-directional communication.
     sendToParentPort.send(fromParent.sendPort);
 
-    // directly handle saga (Stream of Effect).
+    // directly handle effects from saga.
     for (var effect in saga(param)) {
       if (effect is PutEffect || effect is TakeEveryEffect) {
         sendToParentPort.send(effect);
@@ -174,6 +175,6 @@ class EffectManager {
 
   // running on main _isolate
   Future run(Saga rootSaga, [Object param]) async {
-    await new _EffectDispatcher(rootSaga, param);
+    (await new _EffectDispatcher()).run(rootSaga, param);
   }
 }
