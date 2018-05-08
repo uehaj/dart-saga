@@ -2,61 +2,60 @@ import "dart:async";
 import "dart:isolate";
 import './effect.dart';
 
-class ActionDispatchContext {
-  Map<String, List<_Task>> _waitingActions;
+class _EffectDispatcher {
+  Map<String, List<_Task>> _waitingTasks;
 
-  _Task task;
+  _Task _task;
 
   // running on parent isolate
-  ActionDispatchContext(Saga saga, param, [waitingActions]) {
-    if (waitingActions != null) {
-      this._waitingActions = waitingActions;
+  _EffectDispatcher(Saga saga, param, [waitingTasks]) {
+    if (waitingTasks != null) {
+      this._waitingTasks = waitingTasks;
     } else {
-      this._waitingActions = {};
+      this._waitingTasks = {};
     }
 
     // running on parent isolate
-    this.task = new _Task(saga, param);
+    this._task = new _Task(saga, param)..start().then(this._handleEvent);
+  }
 
-    this.task.start().then((StreamIterator itr) async {
-      // effects which yielded from the saga (child isolate)
-      while (await itr.moveNext()) {
-        Effect effect = itr.current;
+  void _handleEvent(StreamIterator itr) async {
+    // effects which yielded from the saga (child isolate)
+    while (await itr.moveNext()) {
+      Effect effect = itr.current;
 
-        if (effect is PutEffect) {
-          this._put(effect);
-        } else if (effect is TakeEffect) {
-          this._take(effect, this.task);
-        } else if (effect is TakeEveryEffect) {
-          /**/
-        } else if (effect is ForkEffect) {
-          ActionDispatchContext tmp = new ActionDispatchContext(
-              effect.saga, effect.param, this._waitingActions);
-          this.task.send(tmp.task.taskId);
-        } else if (effect is CancelEffect) {
-          _Task task = _Task._taskMap[effect.taskId];
-          task.cancel();
-        }
+      if (effect is PutEffect) {
+        this._put(effect);
+      } else if (effect is TakeEffect) {
+        this._take(effect, this._task);
+      } else if (effect is TakeEveryEffect) {
+        /**/
+      } else if (effect is ForkEffect) {
+        _EffectDispatcher tmp = new _EffectDispatcher(
+            effect.saga, effect.param, this._waitingTasks);
+        this._task.send(tmp._task.taskId);
+      } else if (effect is CancelEffect) {
+        _Task._taskMap[effect.taskId]?.cancel();
       }
-    });
+    }
   }
 
   // running on parent isolate
   void _put(PutEffect effect) {
-    if (_waitingActions[effect.action.type] != null) {
-      for (var waitingSaga in _waitingActions[effect.action.type]) {
+    if (_waitingTasks[effect.action.type] != null) {
+      for (var waitingSaga in _waitingTasks[effect.action.type]) {
         waitingSaga.send(effect.action);
       }
-      _waitingActions.remove(effect.action.type);
+      _waitingTasks.remove(effect.action.type);
     }
   }
 
   // running on parent isolate
   void _take(TakeEffect effect, _Task task) {
-    if (_waitingActions[effect.action.type] == null) {
-      _waitingActions[effect.action.type] = [task];
+    if (_waitingTasks[effect.action.type] == null) {
+      _waitingTasks[effect.action.type] = [task];
     } else {
-      _waitingActions[effect.action.type].add(task);
+      _waitingTasks[effect.action.type].add(task);
     }
   }
 }
@@ -72,7 +71,7 @@ class _Task {
 
   List<_Task> _childTasks = [];
 
-  Map<String, Object> isolateInvokeMessage;
+  Map<String, Object> _isolateInvokeMessage;
 
   SendPort _sendToChildPort;
 
@@ -85,7 +84,7 @@ class _Task {
     this.taskId = _Task._taskIdSeed++;
     _Task._taskMap[this.taskId] = this;
 
-    this.isolateInvokeMessage = {
+    this._isolateInvokeMessage = {
       'saga': saga,
       'param': param,
     };
@@ -99,13 +98,13 @@ class _Task {
     });
 
     ReceivePort fromChild = new ReceivePort();
-    isolateInvokeMessage['sendToParentPort'] = fromChild.sendPort;
+    _isolateInvokeMessage['sendToParentPort'] = fromChild.sendPort;
     this._isolate = await Isolate.spawn(
-        _Task._isolateHandler, this.isolateInvokeMessage,
-        paused: false, onExit: onExitPort.sendPort);
-    this._isolate.errors.listen((error) {
-      print(error);
-    });
+        _Task._isolateHandler, this._isolateInvokeMessage,
+        paused: false, onExit: onExitPort.sendPort)
+      ..errors.listen((error) {
+        print(error);
+      });
     StreamIterator itr = new StreamIterator(fromChild);
     if (await itr.moveNext()) {
       this._sendToChildPort = itr.current;
@@ -171,6 +170,6 @@ class EffectManager {
 
   // running on main _isolate
   Future run(Saga rootSaga, [Object param]) async {
-    await new ActionDispatchContext(rootSaga, param);
+    await new _EffectDispatcher(rootSaga, param);
   }
 }
