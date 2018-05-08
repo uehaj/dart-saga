@@ -1,8 +1,5 @@
 import "dart:async";
 import './action.dart';
-import './saga.dart';
-
-typedef Iterable<Effect> Saga(param);
 
 abstract class Effect {}
 
@@ -12,9 +9,9 @@ class TakeEffect extends Effect {
   Action action;
   Completer<dynamic> completer = new Completer();
 
-  TakeEffect(this.action, {SagaYieldCallback<dynamic> callback}) {
-    if (callback != null) {
-      callback(completer.future);
+  TakeEffect(this.action, {SagaYieldCallback<dynamic> getResult}) {
+    if (getResult != null) {
+      getResult(completer.future);
     }
   }
 }
@@ -30,13 +27,14 @@ class PutEffect extends Effect {
 }
 
 class ForkEffect extends Effect {
-  Saga saga;
-  Object param;
+  Function saga;
+  Object params;
   Completer<int> completer = new Completer();
 
-  ForkEffect(this.saga, {SagaYieldCallback<int> callback, Object this.param}) {
-    if (callback != null) {
-      callback(completer.future);
+  ForkEffect(this.saga,
+      {SagaYieldCallback<int> getResult, Object this.params}) {
+    if (getResult != null) {
+      getResult(completer.future);
     }
   }
 }

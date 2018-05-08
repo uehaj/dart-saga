@@ -15,7 +15,7 @@ class _EffectDispatcher {
     }
   }
 
-  Future<_Task> run(saga, param) async =>
+  Future<_Task> run(Function saga, List<dynamic> param) async =>
       new _Task(saga, this._handleEvent, param)..start();
 
   void _handleEvent(StreamIterator itr, _Task task) async {
@@ -30,9 +30,8 @@ class _EffectDispatcher {
       } else if (effect is TakeEveryEffect) {
         /**/
       } else if (effect is ForkEffect) {
-        _Task newTask = await (this.run(effect.saga, effect.param));
-        // await task.start();
-        // send back forked ask id to saga as a result of ForkEffect.
+        _Task newTask = await (this.run(effect.saga, effect.params));
+        // send back forked task id to the saga as a result of ForkEffect.
         task.send(newTask.taskId);
       } else if (effect is CancelEffect) {
         _Task._taskMap[effect.taskId]?.cancel();
@@ -77,14 +76,14 @@ class _Task {
 
   EffectHandler _handleEvent;
 
-  void send(msg) {
+  void send(dynamic msg) {
     if (this._sendToChildPort != null) {
       this._sendToChildPort.send(msg);
     }
   }
 
   // still running on parent isolate
-  _Task(Saga saga, EffectHandler this._handleEvent, [Object param]) {
+  _Task(Function saga, EffectHandler this._handleEvent, [List<dynamic> param]) {
     this.taskId = _Task._taskIdSeed++;
     _Task._taskMap[this.taskId] = this;
 
@@ -121,9 +120,9 @@ class _Task {
 
   // now running on child isolate
   static Future<void> _isolateHandler(Map<String, Object> params) async {
-    Saga saga = params['saga'];
-    SendPort sendToParentPort = params['sendToParentPort'];
+    Function saga = params['saga'];
     Object param = params['param'];
+    SendPort sendToParentPort = params['sendToParentPort'];
 
     ReceivePort fromParent = new ReceivePort();
     StreamIterator receiveFromParent = new StreamIterator(fromParent);
@@ -132,7 +131,7 @@ class _Task {
     sendToParentPort.send(fromParent.sendPort);
 
     // directly handle effects from saga.
-    for (var effect in saga(param)) {
+    for (var effect in Function.apply(saga, param)) {
       if (effect is PutEffect || effect is TakeEveryEffect) {
         sendToParentPort.send(effect);
       }
@@ -174,7 +173,7 @@ class EffectManager {
   }
 
   // running on main _isolate
-  Future run(Saga rootSaga, [Object param]) async {
+  Future run(Function rootSaga, [List<dynamic> param]) async {
     (await new _EffectDispatcher()).run(rootSaga, param);
   }
 }

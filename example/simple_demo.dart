@@ -1,10 +1,10 @@
 import "dart:async";
 import 'package:dart_saga/dart_saga.dart';
 
-Iterable<Effect> rootSaga([msg]) sync* {
-  print("rootSaga(${msg}) started");
+Iterable<Effect> rootSaga([msg, greeting]) sync* {
+  print("rootSaga(${msg}) started greeting: ${greeting}");
   Future<int> saga2handle;
-  yield new ForkEffect(saga2, param: "start saga2", callback: (_) {
+  yield new ForkEffect(saga2, params: ["start saga2"], getResult: (_) {
     saga2handle = _;
   });
 
@@ -19,7 +19,7 @@ Iterable<Effect> rootSaga([msg]) sync* {
 Iterable<Effect> saga2([msg]) sync* {
   print("           saga2(${msg}) started");
   Future<int> saga3handle;
-  yield new ForkEffect(saga3, param: "start saga3", callback: (_) {
+  yield new ForkEffect(saga3, params: ["start saga3"], getResult: (_) {
     saga3handle = _;
   });
   int i = 0;
@@ -43,5 +43,5 @@ Iterable<Effect> saga3([msg]) sync* {
 
 main() async {
   var effectManager = new EffectManager();
-  effectManager.run(rootSaga, "start rootSaga");
+  effectManager.run(rootSaga, ["start rootSaga", "hello"]);
 }
