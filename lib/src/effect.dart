@@ -1,12 +1,22 @@
 import "dart:async";
-import "dart:isolate";
 import './action.dart';
+import './saga.dart';
+
+typedef Iterable<Effect> Saga(param);
 
 abstract class Effect {}
 
+typedef void SagaYieldCallback<T>(Future<T> sc);
+
 class TakeEffect extends Effect {
   Action action;
-  TakeEffect(this.action);
+  Completer<dynamic> completer = new Completer();
+
+  TakeEffect(this.action, {SagaYieldCallback<dynamic> callback}) {
+    if (callback != null) {
+      callback(completer.future);
+    }
+  }
 }
 
 class TakeEveryEffect extends Effect {
@@ -19,16 +29,22 @@ class PutEffect extends Effect {
   PutEffect(this.action);
 }
 
-typedef Iterable<Effect> Saga(param);
-
 class ForkEffect extends Effect {
   Saga saga;
-  Isolate parent;
-  Isolate child;
   Object param;
-  ForkEffect(this.saga, [this.param]) {
-    this.parent = Isolate.current;
+  Completer<int> completer = new Completer();
+
+  ForkEffect(this.saga, {SagaYieldCallback<int> callback, Object this.param}) {
+    if (callback != null) {
+      callback(completer.future);
+    }
   }
+}
+
+class CancelEffect extends Effect {
+  Future<int> taskIdFuture;
+  int taskId;
+  CancelEffect(this.taskIdFuture) {}
 }
 
 typedef Future<T> FutureFunc<T>();
@@ -42,7 +58,10 @@ class AsyncCallEffect<T> extends CallableEffect {
   AsyncCallEffect.value(Future<T> value) {
     this._futureFunc = () => value;
   }
+
   AsyncCallEffect.func(this._futureFunc);
+
+  @override
   Future<T> call() async {
     return await _futureFunc();
   }
@@ -53,11 +72,13 @@ class AsyncCallEffect<T> extends CallableEffect {
 //        () => new Future.delayed(new Duration(seconds: nSeconds)));
 class WaitEffect<T> extends CallableEffect {
   AsyncCallEffect _callEffect;
+
   WaitEffect(int delay) {
     this._callEffect = new AsyncCallEffect.value(
         new Future.delayed(new Duration(seconds: delay)));
   }
 
+  @override
   Future<T> call() async {
     return await _callEffect();
   }
