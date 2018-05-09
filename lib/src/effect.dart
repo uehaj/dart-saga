@@ -1,4 +1,5 @@
 import "dart:async";
+
 import './action.dart';
 
 abstract class Effect {}
@@ -29,6 +30,8 @@ class PutEffect extends Effect {
 class ForkEffect extends Effect {
   Function saga;
   Object params;
+  int perentTaskId;
+
   Completer<int> completer = new Completer();
 
   ForkEffect(this.saga,

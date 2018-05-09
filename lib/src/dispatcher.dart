@@ -4,15 +4,7 @@ import './effect.dart';
 import './task.dart';
 
 class EffectDispatcher {
-  Map<String, List<Task>> _waitingTasks;
-
-  EffectDispatcher([waitingTasks]) {
-    if (waitingTasks == null) {
-      this._waitingTasks = {};
-    } else {
-      this._waitingTasks = waitingTasks;
-    }
-  }
+  Map<String, List<Task>> _waitingTasks = {};
 
   Future<Task> run(Function saga, List<dynamic> param) async =>
       new Task(saga, this._handleEvent, param)..start();
@@ -34,6 +26,7 @@ class EffectDispatcher {
         this._cancel(effect);
       }
     }
+    print("===========2");
   }
 
   void _put(PutEffect effect) {
@@ -56,7 +49,10 @@ class EffectDispatcher {
   void _fork(ForkEffect effect, Task task) async {
     Task newTask = await (this.run(effect.saga, effect.params));
     // send back forked task id to the saga as a result of ForkEffect.
+    Task parentTask = Task.taskMap[effect.perentTaskId];
+    parentTask.addChildTask(newTask);
     task.send(newTask.taskId);
+    print("//////////");
   }
 
   void _cancel(CancelEffect effect) {

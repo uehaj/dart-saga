@@ -41,7 +41,8 @@ Iterable<Effect> saga3([msg]) sync* {
   }
 }
 
-main() async {
+main() {
   var effectManager = new EffectManager();
   effectManager.run(rootSaga, ["start rootSaga", "hello"]);
+  print("=+=+");
 }

@@ -1,4 +1,5 @@
 import "dart:async";
+
 import './dispatcher.dart';
 
 class EffectManager {
@@ -7,7 +8,8 @@ class EffectManager {
   }
 
   // running on main _isolate
-  Future run(Function rootSaga, [List<dynamic> param]) async {
-    (await new EffectDispatcher()).run(rootSaga, param);
+  void run(Function rootSaga, [List<dynamic> param]) {
+    new EffectDispatcher().run(rootSaga, param);
+    print("hoge");
   }
 }
