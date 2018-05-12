@@ -53,14 +53,21 @@ class Task {
   Future<Task> start() async {
     print("Task.start ${this.taskId}");
     ReceivePort onExitPort = new ReceivePort();
+    ReceivePort onErrorPort = new ReceivePort();
     ReceivePort fromChild = new ReceivePort();
-    onExitPort.listen((x) {
+
+    onExitPort.listen((msg) {
       fromChild.close();
-      print("Task(taskId=${this.taskId}) terminated.");
+      print("Task(taskId=${this.taskId}) terminated: ${msg}.");
       if (Task.taskMap[this.taskId] != null) {
         Task.taskMap.remove(this.taskId);
       }
       onExitPort.close();
+      onErrorPort.close();
+    });
+
+    onErrorPort.listen((error) {
+      print("Task(taskId=${this.taskId}) error: ${error}.");
     });
 
     StreamIterator itr = new StreamIterator(fromChild);
@@ -70,19 +77,17 @@ class Task {
 
     this._isolate = await Isolate.spawn(
         Task._isolateHandler, isolateInvokeMessage,
-        paused: false, onExit: onExitPort.sendPort)
-      ..errors.listen((error) {
-        print(error);
-      });
+        paused: false,
+        onExit: onExitPort.sendPort,
+        onError: onErrorPort.sendPort);
 
     if (await itr.moveNext()) {
       this._sendToChildPort = itr.current;
     } else {
       throw new Exception("Illegal stream state.");
     }
-    this._handleEvent(itr, this);
-    print("-----------");
-    return this;
+
+    return this.._handleEvent(itr, this);
   }
 
   // now running on child isolate

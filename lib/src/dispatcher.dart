@@ -26,7 +26,6 @@ class EffectDispatcher {
         this._cancel(effect);
       }
     }
-    print("===========2");
   }
 
   void _put(PutEffect effect) {
@@ -52,7 +51,6 @@ class EffectDispatcher {
     Task parentTask = Task.taskMap[effect.perentTaskId];
     parentTask.addChildTask(newTask);
     task.send(newTask.taskId);
-    print("//////////");
   }
 
   void _cancel(CancelEffect effect) {

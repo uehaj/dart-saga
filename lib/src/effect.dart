@@ -48,23 +48,24 @@ class CancelEffect extends Effect {
   CancelEffect(this.taskIdFuture) {}
 }
 
-typedef Future<T> FutureFunc<T>();
+typedef Future<T> _FutureFunc<T>(params);
 
 abstract class CallableEffect extends Effect implements Function {
-  call();
+  Future call();
 }
 
 class AsyncCallEffect<T> extends CallableEffect {
-  FutureFunc<T> _futureFunc;
+  _FutureFunc<T> _futureFunc;
+  Object _params;
   AsyncCallEffect.value(Future<T> value) {
-    this._futureFunc = () => value;
+    this._futureFunc = (_) => value;
   }
 
-  AsyncCallEffect.func(this._futureFunc);
+  AsyncCallEffect.func(this._futureFunc, [this._params]);
 
   @override
   Future<T> call() async {
-    return await _futureFunc();
+    return await Function.apply(_futureFunc, this._params);
   }
 }
 
