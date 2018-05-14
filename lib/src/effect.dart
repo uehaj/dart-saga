@@ -65,7 +65,7 @@ class AsyncCallEffect<T> extends CallableEffect {
 
   @override
   Future<T> call() async {
-    return await Function.apply(_futureFunc, this._params);
+    return await _futureFunc(this._params);
   }
 }
 
