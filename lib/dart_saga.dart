@@ -16,7 +16,7 @@ typedef WaitEffect<T> wait;
 */
 
 class take extends TakeEffect {
-  take(action, {getResult}) : super(action, getResult: getResult);
+  take(actionType, {getResult}) : super(actionType, getResult: getResult);
 }
 
 class takeEvery extends TakeEveryEffect {

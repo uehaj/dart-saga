@@ -7,10 +7,10 @@ abstract class Effect {}
 typedef void SagaYieldCallback<T>(Future<T> sc);
 
 class TakeEffect extends Effect {
-  Action action;
+  String actionType;
   Completer<dynamic> completer = new Completer();
 
-  TakeEffect(this.action, {SagaYieldCallback<dynamic> getResult}) {
+  TakeEffect(this.actionType, {SagaYieldCallback<dynamic> getResult}) {
     if (getResult != null) {
       getResult(completer.future);
     }

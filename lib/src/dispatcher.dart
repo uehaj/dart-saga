@@ -38,10 +38,10 @@ class EffectDispatcher {
   }
 
   void _take(TakeEffect effect, Task task) {
-    if (_waitingTasks[effect.action.type] == null) {
-      _waitingTasks[effect.action.type] = [task];
+    if (_waitingTasks[effect.actionType] == null) {
+      _waitingTasks[effect.actionType] = [task];
     } else {
-      _waitingTasks[effect.action.type].add(task);
+      _waitingTasks[effect.actionType].add(task);
     }
   }
 

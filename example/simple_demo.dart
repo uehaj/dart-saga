@@ -8,12 +8,12 @@ Iterable<Effect> rootSaga([msg, greeting]) sync* {
     saga2handle = _;
   });
 
-  for (int i = 0; i < 5; i++) {
-    //yield new AsyncCallEffect.func(
-    //    () => new Future.delayed(new Duration(seconds: 1)));
+  for (int i = 0; i < 10; i++) {
     yield wait(1);
+    if (i == 5) {
+      yield cancel(saga2handle);
+    }
   }
-  yield cancel(saga2handle);
 }
 
 Iterable<Effect> saga2([msg]) sync* {
@@ -22,14 +22,15 @@ Iterable<Effect> saga2([msg]) sync* {
   yield fork(saga3, params: ["start saga3"], getResult: (_) {
     saga3handle = _;
   });
-  int i = 0;
-  while (true) {
+
+  for (int i = 0; true; i++) {
     print("           saga2");
     yield wait(1);
-    yield put(Action("HOGE"));
-//    if (i++ == 10) {
-//      yield new CancelEffect(saga2contextFuture);
-//    }
+    print("           put");
+    yield put(Action("HOGE", "From saga2"));
+    if (i == 3) {
+      yield cancel(saga3handle);
+    }
   }
 }
 
@@ -38,13 +39,13 @@ Iterable<Effect> saga3([msg]) sync* {
   while (true) {
     print("                      saga3");
     Future action;
-    yield take(Action("HOGE"), getResult: (_) async {
+    yield take("HOGE", getResult: (_) async {
       action = _;
     });
 
     yield asyncCall.func((_) async {
-      print("abc + ${_}");
-    }, ["abc"]);
+      print("                      taken ${ await action }");
+    }, []);
   }
 }
 

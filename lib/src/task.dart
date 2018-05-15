@@ -10,19 +10,16 @@ class _IsolateInvokeMessage {
   Object sagaParam;
   SendPort sendToParentPort;
   int taskId;
+
   _IsolateInvokeMessage(
       this.saga, this.sagaParam, this.sendToParentPort, this.taskId);
 }
 
 class Task {
   static int _taskIdSeed = 0;
-
   int taskId;
-
   static Map<int, Task> taskMap = {};
-
   Isolate _isolate;
-
   List<Task> _childTasks = [];
 
   void addChildTask(Task task) {
@@ -30,11 +27,8 @@ class Task {
   }
 
   SendPort _sendToChildPort;
-
   EffectHandler _handleEvent;
-
   Function _saga;
-
   List<dynamic> _sagaParam;
 
   void send(dynamic msg) {
