@@ -36,12 +36,12 @@ class cancel extends CancelEffect {
   cancel(taskIdFuture) : super(taskIdFuture);
 }
 
-class asyncCall<T> extends AsyncCallEffect<T> {
-  asyncCall.value(Future<T> value) : super.value(value);
-  asyncCall.func(Future<T> futureFunc(dynamic), [params])
+class call<T> extends CallEffect<T> {
+  call.value(Future<T> value) : super.value(value);
+  call.func(Future<T> futureFunc(dynamic), [params])
       : super.func(futureFunc, params);
 }
 
-class wait<T> extends WaitEffect<T> {
-  wait(int delay) : super(delay);
+class delay<T> extends DelayEffect<T> {
+  delay(int sec) : super(sec);
 }

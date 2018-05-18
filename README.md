@@ -4,6 +4,8 @@ Redux-saga like process manager for Dart.
 
 This library supports communication pattern between isolates through 'cannel'.
 
+I planned to integrated with dart-redux but cannnot now.
+
 _Note_: This package is still under development, and many of functionality might not be available yet. [Feedback](https://github.com/uehaj/dart-saga/issues) and [Pull Requests](https://github.com/uehaj/dart-saga/pulls) are most welcome!
 
 ## Sample code
@@ -82,3 +84,31 @@ Task(taskId=2) terminated: null.
 Task(taskId=1) terminated: null.
 Task(taskId=0) terminated: null.
 ```
+
+# Implemented Redux-Saga's Effects
+
+* [x] take
+* [ ] takeMaybe
+* [x] put
+* [ ] putResolve
+* [ ] all
+* [ ] race
+* [ ] call
+* [ ] apply
+* [ ] cps
+* [x] fork
+* [ ] spawn
+* [ ] join
+* [x] cancel
+* [ ] select
+* [ ] actionChannel
+* [ ] cancelled
+* [ ] flush
+* [ ] getContext
+* [ ] setContext,
+* [ ] retry
+* [ ] takeEvery
+* [ ] takeLatest
+* [ ] takeLeading
+* [ ] throttle
+* [x] delay

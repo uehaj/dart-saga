@@ -7,7 +7,7 @@ rootSaga([msg, greeting]) async* {
   yield fork(saga2, params: ["start saga2"], completer: saga2handle);
 
   for (int i = 0; i < 10; i++) {
-    yield wait(1);
+    yield delay(1000);
     if (i == 5) {
       yield cancel(await saga2handle.future);
     }
@@ -21,7 +21,7 @@ saga2([msg]) async* {
 
   for (int i = 0; true; i++) {
     print("           saga2");
-    yield wait(1);
+    yield delay(1000);
     yield put(Action("HOGE", "From saga2"));
     if (i == 3) {
       yield cancel(await saga3handle.future);

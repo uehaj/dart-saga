@@ -42,14 +42,14 @@ abstract class CallableEffect extends Effect implements Function {
 
 typedef Future<T> _FutureFunc<T>(params);
 
-class AsyncCallEffect<T> extends CallableEffect {
+class CallEffect<T> extends CallableEffect {
   _FutureFunc<T> _futureFunc;
   Object _params;
-  AsyncCallEffect.value(Future<T> value) {
+  CallEffect.value(Future<T> value) {
     this._futureFunc = (_) => value;
   }
 
-  AsyncCallEffect.func(this._futureFunc, [this._params]);
+  CallEffect.func(this._futureFunc, [this._params]);
 
   @override
   Future<T> call() async {
@@ -57,15 +57,12 @@ class AsyncCallEffect<T> extends CallableEffect {
   }
 }
 
-// WaitEffect(nSeconds) is equivarent to:
-// new AsyncCallEffect.func(
-//        () => new Future.delayed(new Duration(seconds: nSeconds)));
-class WaitEffect<T> extends CallableEffect {
-  AsyncCallEffect _callEffect;
+class DelayEffect<T> extends CallableEffect {
+  CallEffect _callEffect;
 
-  WaitEffect(int delay) {
-    this._callEffect = new AsyncCallEffect.value(
-        new Future.delayed(new Duration(seconds: delay)));
+  DelayEffect(int ms) {
+    this._callEffect = new CallEffect.value(
+        new Future.delayed(new Duration(milliseconds: ms)));
   }
 
   @override
