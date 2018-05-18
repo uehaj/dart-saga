@@ -1,7 +1,7 @@
 import "dart:async";
 import 'package:dart_saga/dart_saga.dart';
 
-Iterable<Effect> rootSaga([msg, greeting]) sync* {
+rootSaga([msg, greeting]) async* {
   print("rootSaga(${msg}) started greeting: ${greeting}");
   Future<int> saga2handle;
   yield fork(saga2, params: ["start saga2"], getResult: (_) {
@@ -11,12 +11,12 @@ Iterable<Effect> rootSaga([msg, greeting]) sync* {
   for (int i = 0; i < 10; i++) {
     yield wait(1);
     if (i == 5) {
-      yield cancel(saga2handle);
+      yield cancel(await saga2handle);
     }
   }
 }
 
-Iterable<Effect> saga2([msg]) sync* {
+saga2([msg]) async* {
   print("           saga2(${msg}) started");
   Future<int> saga3handle;
   yield fork(saga3, params: ["start saga3"], getResult: (_) {
@@ -26,7 +26,6 @@ Iterable<Effect> saga2([msg]) sync* {
   for (int i = 0; true; i++) {
     print("           saga2");
     yield wait(1);
-    print("           put");
     yield put(Action("HOGE", "From saga2"));
     if (i == 3) {
       yield cancel(saga3handle);
@@ -34,18 +33,15 @@ Iterable<Effect> saga2([msg]) sync* {
   }
 }
 
-Iterable<Effect> saga3([msg]) sync* {
+saga3([msg]) async* {
   print("                      saga3(${msg}) started");
   while (true) {
     print("                      saga3");
-    Future action;
+    Future takenAction;
     yield take("HOGE", getResult: (_) async {
-      action = _;
+      takenAction = _;
     });
-
-    yield asyncCall.func((_) async {
-      print("                      taken ${ await action }");
-    }, []);
+    print("                      taken ${await takenAction}");
   }
 }
 

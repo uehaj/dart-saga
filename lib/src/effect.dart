@@ -43,16 +43,15 @@ class ForkEffect extends Effect {
 }
 
 class CancelEffect extends Effect {
-  Future<int> taskIdFuture;
   int taskId;
-  CancelEffect(this.taskIdFuture) {}
+  CancelEffect(this.taskId) {}
 }
-
-typedef Future<T> _FutureFunc<T>(params);
 
 abstract class CallableEffect extends Effect implements Function {
   Future call();
 }
+
+typedef Future<T> _FutureFunc<T>(params);
 
 class AsyncCallEffect<T> extends CallableEffect {
   _FutureFunc<T> _futureFunc;

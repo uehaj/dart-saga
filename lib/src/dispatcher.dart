@@ -13,7 +13,6 @@ class EffectDispatcher {
     // effects which received from child isolate through Port.
     while (await itr.moveNext()) {
       Effect effect = itr.current;
-
       if (effect is PutEffect) {
         this._put(effect);
       } else if (effect is TakeEffect) {
@@ -30,8 +29,8 @@ class EffectDispatcher {
 
   void _put(PutEffect effect) {
     if (_waitingTasks[effect.action.type] != null) {
-      for (var waitingSaga in _waitingTasks[effect.action.type]) {
-        waitingSaga.send(effect.action);
+      for (var waitingTask in _waitingTasks[effect.action.type]) {
+        waitingTask.send(effect.action);
       }
       _waitingTasks.remove(effect.action.type);
     }

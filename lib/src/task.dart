@@ -84,6 +84,11 @@ class Task {
     return this.._handleEvent(itr, this);
   }
 
+  static handleError(Future future) => future
+    ..catchError((e) {
+      print("Async error on child isolate: ${e}");
+    });
+
   // now running on child isolate
   static Future<void> _isolateHandler(_IsolateInvokeMessage params) async {
     SendPort sendToParentPort = params.sendToParentPort;
@@ -93,23 +98,28 @@ class Task {
     // send sendPort to parent isolate for bi-directional communication.
     sendToParentPort.send(fromParent.sendPort);
 
+    Stream sagaStream = Function.apply(params.saga, params.sagaParam);
+    /*sagaStream.listen((_) {}).asFuture().then((_) {
+      print("hoge");
+    });*/
     // directly handle effects from saga.
-    for (var effect in Function.apply(params.saga, params.sagaParam)) {
+    await for (var effect in sagaStream) {
       if (effect is PutEffect || effect is TakeEveryEffect) {
         sendToParentPort.send(effect);
       } else if (effect is ForkEffect) {
         effect.perentTaskId = params.taskId;
-        await Task._fork(effect, sendToParentPort, receiveFromParent);
+        await Task.handleError(
+            Task._fork(effect, sendToParentPort, receiveFromParent));
       } else if (effect is TakeEffect) {
-        await Task._take(effect, sendToParentPort, receiveFromParent);
+        await Task.handleError(
+            Task._take(effect, sendToParentPort, receiveFromParent));
       } else if (effect is CallableEffect) {
-        await effect.call();
+        await Task.handleError(effect.call());
       } else if (effect is CancelEffect) {
-        await Task._cancel(effect, sendToParentPort);
+        await Task.handleError(Task._cancel(effect, sendToParentPort));
       }
     }
-
-    fromParent.close();
+    await fromParent.close();
     await Task._terminate(params.taskId, sendToParentPort);
   }
 
@@ -124,17 +134,16 @@ class Task {
 
   static Future<void> _take(
       TakeEffect effect, sendToParentPort, receiveFromParent) async {
+    Completer completer = effect.completer;
+    effect.completer = null; // this is needed to avoid serialize error.
     sendToParentPort.send(effect);
     if (await receiveFromParent.moveNext()) {
       var takenAction = receiveFromParent.current;
-      effect.completer.complete(takenAction);
+      completer.complete(takenAction);
     }
   }
 
   static Future<void> _cancel(CancelEffect effect, sendToParentPort) async {
-    // fullfill Future of taskID.
-    effect.taskId = await effect.taskIdFuture;
-    effect.taskIdFuture = null; // this is needed to avoid serialize error.
     sendToParentPort.send(effect);
   }
 
