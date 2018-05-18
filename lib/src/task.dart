@@ -128,7 +128,9 @@ class Task {
     sendToParentPort.send(effect);
     if (await receiveFromParent.moveNext()) {
       var taskId = receiveFromParent.current;
-      effect.completer.complete(taskId);
+      if (effect.completer != null) {
+        effect.completer.complete(taskId);
+      }
     }
   }
 
@@ -139,7 +141,9 @@ class Task {
     sendToParentPort.send(effect);
     if (await receiveFromParent.moveNext()) {
       var takenAction = receiveFromParent.current;
-      completer.complete(takenAction);
+      if (completer != null) {
+        completer.complete(takenAction);
+      }
     }
   }
 

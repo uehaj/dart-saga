@@ -4,17 +4,11 @@ import './action.dart';
 
 abstract class Effect {}
 
-typedef void SagaYieldCallback<T>(Future<T> sc);
-
 class TakeEffect extends Effect {
   String actionType;
-  Completer<dynamic> completer = new Completer();
+  Completer<dynamic> completer;
 
-  TakeEffect(this.actionType, {SagaYieldCallback<dynamic> getResult}) {
-    if (getResult != null) {
-      getResult(completer.future);
-    }
-  }
+  TakeEffect(this.actionType, {this.completer});
 }
 
 class TakeEveryEffect extends Effect {
@@ -32,14 +26,9 @@ class ForkEffect extends Effect {
   Object params;
   int perentTaskId;
 
-  Completer<int> completer = new Completer();
+  Completer<int> completer;
 
-  ForkEffect(this.saga,
-      {SagaYieldCallback<int> getResult, Object this.params}) {
-    if (getResult != null) {
-      getResult(completer.future);
-    }
-  }
+  ForkEffect(this.saga, {this.params, this.completer});
 }
 
 class CancelEffect extends Effect {

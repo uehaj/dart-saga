@@ -3,32 +3,28 @@ import 'package:dart_saga/dart_saga.dart';
 
 rootSaga([msg, greeting]) async* {
   print("rootSaga(${msg}) started greeting: ${greeting}");
-  Future<int> saga2handle;
-  yield fork(saga2, params: ["start saga2"], getResult: (_) {
-    saga2handle = _;
-  });
+  Completer<int> saga2handle = new Completer();
+  yield fork(saga2, params: ["start saga2"], completer: saga2handle);
 
   for (int i = 0; i < 10; i++) {
     yield wait(1);
     if (i == 5) {
-      yield cancel(await saga2handle);
+      yield cancel(await saga2handle.future);
     }
   }
 }
 
 saga2([msg]) async* {
   print("           saga2(${msg}) started");
-  Future<int> saga3handle;
-  yield fork(saga3, params: ["start saga3"], getResult: (_) {
-    saga3handle = _;
-  });
+  Completer<int> saga3handle;
+  yield fork(saga3, params: ["start saga3"], completer: saga3handle);
 
   for (int i = 0; true; i++) {
     print("           saga2");
     yield wait(1);
     yield put(Action("HOGE", "From saga2"));
     if (i == 3) {
-      yield cancel(saga3handle);
+      yield cancel(await saga3handle.future);
     }
   }
 }
@@ -37,11 +33,9 @@ saga3([msg]) async* {
   print("                      saga3(${msg}) started");
   while (true) {
     print("                      saga3");
-    Future takenAction;
-    yield take("HOGE", getResult: (_) async {
-      takenAction = _;
-    });
-    print("                      taken ${await takenAction}");
+    Completer takenAction = new Completer();
+    yield take("HOGE", completer: takenAction);
+    print("                      taken ${await takenAction.future}");
   }
 }
 
