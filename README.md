@@ -12,51 +12,41 @@ _Note_: This package is still under development, and many of functionality might
 import "dart:async";
 import 'package:dart_saga/dart_saga.dart';
 
-Iterable<Effect> rootSaga([msg, greeting]) sync* {
+rootSaga([msg, greeting]) async* {
   print("rootSaga(${msg}) started greeting: ${greeting}");
-  Future<int> saga2handle;
-  yield fork(saga2, params: ["start saga2"], getResult: (_) {
-    saga2handle = _;
-  });
+  Completer<int> saga2handle = new Completer();
+  yield fork(saga2, params: ["start saga2"], completer: saga2handle);
 
   for (int i = 0; i < 10; i++) {
     yield wait(1);
     if (i == 5) {
-      yield cancel(saga2handle);
+      yield cancel(await saga2handle.future);
     }
   }
 }
 
-Iterable<Effect> saga2([msg]) sync* {
+saga2([msg]) async* {
   print("           saga2(${msg}) started");
-  Future<int> saga3handle;
-  yield fork(saga3, params: ["start saga3"], getResult: (_) {
-    saga3handle = _;
-  });
+  Completer<int> saga3handle;
+  yield fork(saga3, params: ["start saga3"], completer: saga3handle);
 
   for (int i = 0; true; i++) {
     print("           saga2");
     yield wait(1);
-    print("           put");
     yield put(Action("HOGE", "From saga2"));
     if (i == 3) {
-      yield cancel(saga3handle);
+      yield cancel(await saga3handle.future);
     }
   }
 }
 
-Iterable<Effect> saga3([msg]) sync* {
+saga3([msg]) async* {
   print("                      saga3(${msg}) started");
   while (true) {
     print("                      saga3");
-    Future action;
-    yield take("HOGE", getResult: (_) async {
-      action = _;
-    });
-
-    yield asyncCall.func((_) async {
-      print("                      taken ${ await action }");
-    }, []);
+    Completer takenAction = new Completer();
+    yield take("HOGE", completer: takenAction);
+    print("                      taken ${await takenAction.future}");
   }
 }
 
@@ -75,29 +65,20 @@ Task.start 0
 rootSaga(start rootSaga) started greeting: hello
 Task.start 1
            saga2(start saga2) started
-Task.start 2
            saga2
+Task.start 2
                       saga3(start saga3) started
                       saga3
-           put
            saga2
                       taken Action(HOGE, From saga2)
                       saga3
-           put
            saga2
                       taken Action(HOGE, From saga2)
                       saga3
-           put
-           saga2
-                      taken Action(HOGE, From saga2)
-                      saga3
-           put
            saga2
                       taken Action(HOGE, From saga2)
                       saga3
 Task(taskId=2) terminated: null.
-           put
-           saga2
 Task(taskId=1) terminated: null.
 Task(taskId=0) terminated: null.
 ```
