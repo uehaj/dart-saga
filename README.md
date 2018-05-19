@@ -1,10 +1,10 @@
 # [WIP][poc] Port of redux-saga to Dart
 
-Redux-saga like process manager for Dart.
+Redux-saga like isolate handle library for Dart.
 
-This library supports communication pattern between isolates through 'cannel'.
+This library supports invoke isolate easilily, and communication pattern between isolates through channel.
 
-I planned to integrated with dart-redux but cannnot now.
+Integrated with dart-redux are planned.
 
 _Note_: This package is still under development, and many of functionality might not be available yet. [Feedback](https://github.com/uehaj/dart-saga/issues) and [Pull Requests](https://github.com/uehaj/dart-saga/pulls) are most welcome!
 
@@ -93,7 +93,7 @@ Task(taskId=0) terminated: null.
 * [ ] putResolve
 * [ ] all
 * [ ] race
-* [ ] call
+* [x] call
 * [ ] apply
 * [ ] cps
 * [x] fork
@@ -112,3 +112,9 @@ Task(taskId=0) terminated: null.
 * [ ] takeLeading
 * [ ] throttle
 * [x] delay
+
+# Restrictions
+
+Dart's generator/async generator lacks ability to return value from `yield` construts.
+In ES2015, `yield` is expression but in Dart its' statement, so we canot value from effect directly.
+In this library you have to use completer.

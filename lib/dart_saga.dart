@@ -23,6 +23,10 @@ class takeEvery extends TakeEveryEffect {
   takeEvery(action) : super(action);
 }
 
+class takeLatest extends TakeLatestEffect {
+  takeLatest(action) : super(action);
+}
+
 class put extends PutEffect {
   put(action) : super(action);
 }

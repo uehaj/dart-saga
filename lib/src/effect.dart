@@ -16,6 +16,11 @@ class TakeEveryEffect extends Effect {
   TakeEveryEffect(this.action);
 }
 
+class TakeLatestEffect extends Effect {
+  Action action;
+  TakeLatestEffect(this.action);
+}
+
 class PutEffect extends Effect {
   Action action;
   PutEffect(this.action);
