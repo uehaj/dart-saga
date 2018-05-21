@@ -8,7 +8,7 @@ class TakeEffect extends Effect {
   String actionType;
   Completer<dynamic> completer;
 
-  TakeEffect(this.actionType, {this.completer});
+  TakeEffect(this.actionType, [this.completer]);
 }
 
 class TakeEveryEffect extends Effect {
@@ -33,7 +33,7 @@ class ForkEffect extends Effect {
 
   Completer<int> completer;
 
-  ForkEffect(this.saga, {this.params, this.completer});
+  ForkEffect(this.saga, [this.params, this.completer]);
 }
 
 class CancelEffect extends Effect {

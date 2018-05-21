@@ -16,7 +16,7 @@ typedef WaitEffect<T> wait;
 */
 
 class take extends TakeEffect {
-  take(actionType, {completer}) : super(actionType, completer: completer);
+  take(actionType, [completer]) : super(actionType, completer);
 }
 
 class takeEvery extends TakeEveryEffect {
@@ -32,8 +32,7 @@ class put extends PutEffect {
 }
 
 class fork extends ForkEffect {
-  fork(saga, {params, completer})
-      : super(saga, params: params, completer: completer);
+  fork(saga, [params, completer]) : super(saga, params, completer);
 }
 
 class cancel extends CancelEffect {

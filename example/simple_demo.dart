@@ -4,7 +4,7 @@ import 'package:dart_saga/dart_saga.dart';
 rootSaga([msg, greeting]) async* {
   print("rootSaga(${msg}) started greeting: ${greeting}");
   Completer<int> saga2handle = new Completer();
-  yield fork(saga2, params: ["start saga2"], completer: saga2handle);
+  yield fork(saga2, ["start saga2"], saga2handle);
 
   for (int i = 0; i < 10; i++) {
     yield delay(1000);
@@ -17,7 +17,7 @@ rootSaga([msg, greeting]) async* {
 saga2([msg]) async* {
   print("           saga2(${msg}) started");
   Completer<int> saga3handle;
-  yield fork(saga3, params: ["start saga3"], completer: saga3handle);
+  yield fork(saga3, ["start saga3"], saga3handle);
 
   for (int i = 0; true; i++) {
     print("           saga2");
@@ -34,7 +34,7 @@ saga3([msg]) async* {
   while (true) {
     print("                      saga3");
     Completer takenAction = new Completer();
-    yield take("HOGE", completer: takenAction);
+    yield take("HOGE", takenAction);
     print("                      taken ${await takenAction.future}");
   }
 }
