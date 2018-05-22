@@ -9,7 +9,7 @@ class EffectDispatcher {
   Future<Task> run(Function saga, List<dynamic> param) async =>
       new Task(saga, this._handleEvent, param)..start();
 
-  void _handleEvent(StreamIterator itr, Task task) async {
+  void _handleEvent(StreamIterator<Effect> itr, Task task) async {
     // effects which received from child isolate through Port.
     while (await itr.moveNext()) {
       Effect effect = itr.current;

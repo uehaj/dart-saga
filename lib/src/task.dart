@@ -3,8 +3,6 @@ import "dart:isolate";
 
 import './effect.dart';
 
-typedef EffectHandler(StreamIterator itr, Task task);
-
 class _IsolateInvokeMessage {
   Function saga;
   Object sagaParam;
@@ -15,26 +13,37 @@ class _IsolateInvokeMessage {
       this.saga, this.sagaParam, this.sendToParentPort, this.taskId);
 }
 
+typedef EffectHandler(StreamIterator itr, Task task);
+
 class Task {
   static int _taskIdSeed = 0;
-  int taskId;
   static Map<int, Task> taskMap = {};
+
+  int taskId;
   Isolate _isolate;
-  List<Task> _childTasks = [];
-
-  void addChildTask(Task task) {
-    _childTasks.add(task);
-  }
-
   SendPort _sendToChildPort;
   EffectHandler _handleEvent;
   Function _saga;
   List<dynamic> _sagaParam;
+  List<Task> _childTasks = [];
 
   void send(dynamic msg) {
     if (this._sendToChildPort != null) {
       this._sendToChildPort.send(msg);
     }
+  }
+
+  void addChildTask(Task task) {
+    _childTasks.add(task);
+  }
+
+  // still running on parent isolate
+  void cancel() {
+    for (Task child in _childTasks) {
+      child.cancel();
+    }
+    Task.taskMap.remove(this.taskId);
+    this._isolate?.kill();
   }
 
   // still running on parent isolate
@@ -99,10 +108,8 @@ class Task {
     sendToParentPort.send(fromParent.sendPort);
 
     Stream sagaStream = Function.apply(params.saga, params.sagaParam);
-    /*sagaStream.listen((_) {}).asFuture().then((_) {
-      print("hoge");
-    });*/
-    // directly handle effects from saga.
+
+    // directly handle effects from the saga.
     await for (var effect in sagaStream) {
       if (effect is PutEffect || effect is TakeEveryEffect) {
         sendToParentPort.send(effect);
@@ -155,14 +162,5 @@ class Task {
     CancelEffect effect = new CancelEffect(null);
     effect.taskId = taskId;
     sendToParentPort.send(effect);
-  }
-
-  // still running on parent isolate
-  void cancel() {
-    for (Task child in _childTasks) {
-      child.cancel();
-    }
-    Task.taskMap.remove(this.taskId);
-    this._isolate.kill();
   }
 }
