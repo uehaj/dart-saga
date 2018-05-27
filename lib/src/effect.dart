@@ -29,7 +29,7 @@ class PutEffect extends Effect {
 class ForkEffect extends Effect {
   Function saga;
   Object params;
-  int perentTaskId;
+  //int perentTaskId;
 
   Completer<int> completer;
 

@@ -16,10 +16,10 @@ class _IsolateInvokeMessage {
 typedef EffectHandler(StreamIterator itr, Task task);
 
 class Task {
-  static int _taskIdSeed = 0;
   static Map<int, Task> taskMap = {};
-
   int taskId;
+
+  static int _taskIdSeed = 0;
   Isolate _isolate;
   SendPort _sendToChildPort;
   EffectHandler _handleEvent;
@@ -47,7 +47,7 @@ class Task {
   }
 
   // still running on parent isolate
-  Task(this._saga, this._handleEvent, [this._sagaParam]) {
+  Task(this._saga, this._sagaParam, this._handleEvent) {
     this.taskId = Task._taskIdSeed++;
     Task.taskMap[this.taskId] = this;
   }
@@ -114,7 +114,7 @@ class Task {
       if (effect is PutEffect || effect is TakeEveryEffect) {
         sendToParentPort.send(effect);
       } else if (effect is ForkEffect) {
-        effect.perentTaskId = params.taskId;
+        //effect.perentTaskId = params.taskId;
         await Task.handleError(
             Task._fork(effect, sendToParentPort, receiveFromParent));
       } else if (effect is TakeEffect) {

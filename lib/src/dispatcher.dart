@@ -6,10 +6,10 @@ import './task.dart';
 class EffectDispatcher {
   Map<String, List<Task>> _waitingTasks = {};
 
-  Future<Task> run(Function saga, List<dynamic> param) async =>
-      new Task(saga, this._handleEvent, param)..start();
+  Future<Task> run(Function saga, List<dynamic> sagaParam) async =>
+      new Task(saga, sagaParam, this._handleEvent)..start();
 
-  void _handleEvent(StreamIterator<Effect> itr, Task task) async {
+  void _handleEvent(StreamIterator<dynamic> itr, Task task) async {
     // effects which received from child isolate through Port.
     while (await itr.moveNext()) {
       Effect effect = itr.current;
@@ -45,10 +45,10 @@ class EffectDispatcher {
   }
 
   void _fork(ForkEffect effect, Task task) async {
-    Task newTask = await (this.run(effect.saga, effect.params));
+    Task newTask = await this.run(effect.saga, effect.params);
     // send back forked task id to the saga as a result of ForkEffect.
-    Task parentTask = Task.taskMap[effect.perentTaskId];
-    parentTask.addChildTask(newTask);
+    task.addChildTask(newTask);
+    // let know your parent task id to the child task.
     task.send(newTask.taskId);
   }
 
