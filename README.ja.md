@@ -6,7 +6,7 @@ Dart-SagaはRedux-sagaのDartへの移植版です。
 
 単独で動作しますが、今後dart-reduxに組込まれる予定です
 
-_注意_: このパッケージは開発中であい、多くの機能がまだ利用できません。[フィードバック](https://github.com/uehaj/dart-saga/issues)や[Pull Requests](https://github.com/uehaj/dart-saga/pulls)を歓迎します。
+_注意_: このパッケージは開発中であり、多くの機能がまだ利用できません。[フィードバック](https://github.com/uehaj/dart-saga/issues)や[プルリクエスト](https://github.com/uehaj/dart-saga/pulls)を歓迎します。
 
 ## サンプルコード
 
@@ -115,9 +115,7 @@ Task(taskId=0) terminated: null.
 
 # 仕様上の制約
 
-Dartのジェネレータおよび非同期ジェネレータでは、Dartの言語仕様上yieldが値を返す
-ことはできません()PythonやES2015では可能)。このライブラリではエフェクトのyield
-で値を取得するためにCompleterを使用します。
+Dartのジェネレータおよび非同期ジェネレータでは、Dartの言語仕様上yieldが[値を返すことはできません](https://github.com/dart-lang/sdk/issues/32831)(PythonやES2015では可能)。このライブラリではエフェクトのyieldで値を取得するためにCompleterを使用します。
 
 たとえば、
 
