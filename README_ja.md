@@ -1,15 +1,14 @@
-# [WIP][poc] Port of redux-saga to Dart
+# [WIP] Port of redux-saga to Dart
 
-Redux-saga like isolate handling library for Dart.
+Dart-SagaはRedux-sagaのDartへの移植版です。
 
-This library supports invocation and collaboration of isolates based on
-channel of action.
+このライブラリは、チャンネルを通じたDartのアイソレート間の協調をサポートします。
 
-Integrated with dart-redux are planned.
+単独で動作しますが、今後dart-reduxに組込まれる予定です
 
-_Note_: This package is still under development, and many of functionality might not be available yet. [Feedback](https://github.com/uehaj/dart-saga/issues) and [Pull Requests](https://github.com/uehaj/dart-saga/pulls) are most welcome!
+_注意_: このパッケージは開発中であい、多くの機能がまだ利用できません。[フィードバック](https://github.com/uehaj/dart-saga/issues)や[Pull Requests](https://github.com/uehaj/dart-saga/pulls)を歓迎します。
 
-## Sample code
+## サンプルコード
 
 ```dart
 import "dart:async";
@@ -57,7 +56,6 @@ main() {
   var effectManager = new EffectManager();
   effectManager.run(rootSaga, ["start rootSaga", "hello"]);
 }
-
 ```
 
 ### Demo
@@ -87,7 +85,7 @@ Task(taskId=1) terminated: null.
 Task(taskId=0) terminated: null.
 ```
 
-# Implemented Redux-Saga's Effects
+# Redux-Sagaのエフェクト実装状況
 
 * [x] take
 * [ ] takeMaybe
@@ -115,23 +113,20 @@ Task(taskId=0) terminated: null.
 * [ ] throttle
 * [x] delay
 
-# Restrictions
+# 仕様上の制約
 
-Dart's generator/async generator lacks ability to return value from `yield` constructs.
-In both of ES2015 and Python, `yield` is an expression, but in Dart, it's statement, so we cannot get any value from effect directly.
+Dartのジェネレータおよび非同期ジェネレータでは、Dartの言語仕様上yieldが値を返す
+ことはできません()PythonやES2015では可能)。このライブラリではエフェクトのyield
+で値を取得するためにCompleterを使用します。
 
-In this library, instead, you have to use completer.
-
-e.g.
-
-In the case you want to write:
+たとえば、
 
 ```
   int sagaHandle = yield fork(saga2, []);
 
 ```
 
-You have to write:
+のように書きたいときでも、本ライブラリでは以下のように記述する必要があります。
 
 ```
   Completer<int> sagaHandle = new Completer();
