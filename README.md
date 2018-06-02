@@ -1,11 +1,20 @@
 # [WIP] Port of redux-saga to Dart
 
-Redux-saga like isolate handling library for Dart.
+[日本語](README.ja.md)
+
+[Redux-saga](https://github.com/redux-saga/redux-saga) for dart.
 
 This library supports invocation and collaboration of isolates based on
 channel of action.
 
 Integrated with dart-redux are planned.
+
+dart-saga (and redux-saga) is a library that aims to make application side effects (i.e. asynchronous things like data fetching and impure things like accessing the browser cache) easier to manage, more efficient to execute, simple to test, and better at handling failures.
+
+redux-saga uses co-routine with generator function as a concurrency basis but this library uses isolates insteads and streams. so implementation is very simple and suit with Dart way.
+
+
+Dart-saga can be regarded as a library that abstracts and hides low-level dart isolates and streaming operations.
 
 _Note_: This package is still under development, and many of functionality might not be available yet. [Feedback](https://github.com/uehaj/dart-saga/issues) and [Pull Requests](https://github.com/uehaj/dart-saga/pulls) are most welcome!
 

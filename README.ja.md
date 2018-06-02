@@ -1,10 +1,18 @@
 # [WIP] Port of redux-saga to Dart
 
+[英語](README.md)
+
 Dart-SagaはRedux-sagaのDartへの移植版です。
 
 このライブラリは、チャンネルを通じたDartのアイソレート間の協調をサポートします。
 
 単独で動作しますが、今後dart-reduxに組込まれる予定です
+
+dart-saga(及びredux-saga)の目的は、アプリケーションの副作用、たとえば非同期処理や非純粋操作などを容易かつ効率的に実行し、テストを完結にしたり、失敗をより良く扱うことです。
+
+redux-sagaはES6ジェネレータを用いたコルーチンを並行処理の基盤としていますが、dart-sagaではDartのアイソレートとストリームを使用します。これはDartの流儀に馴染み、自然であり実装を容易にしてもいます。とはいえ、dart-sagaのAPI上は、アイソレートやストリームを意識する必要はありません。
+
+dart-sagaは、低レベルなDartのアイソレートやストリームの操作を抽象化・隠蔽する、上位のライブラリ層だと言うこともできるでしょう。
 
 _注意_: このパッケージは開発中であり、多くの機能がまだ利用できません。[フィードバック](https://github.com/uehaj/dart-saga/issues)や[プルリクエスト](https://github.com/uehaj/dart-saga/pulls)を歓迎します。
 
@@ -121,7 +129,6 @@ Dartのジェネレータおよび非同期ジェネレータでは、Dartの言
 
 ```
   int sagaHandle = yield fork(saga2, []);
-
 ```
 
 のように書きたいときでも、本ライブラリでは以下のように記述する必要があります。
@@ -129,6 +136,5 @@ Dartのジェネレータおよび非同期ジェネレータでは、Dartの言
 ```
   Completer<int> sagaHandle = new Completer();
   yield fork(saga2, [], sagaHandle);
-
 ```
 
