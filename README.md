@@ -1,4 +1,4 @@
-# [WIP][poc] Port of redux-saga to Dart
+# [WIP] Port of redux-saga to Dart
 
 Redux-saga like isolate handling library for Dart.
 
