@@ -13,14 +13,15 @@ class _IsolateInvokeMessage {
       this.saga, this.sagaParam, this.sendToParentPort, this.taskId);
 }
 
-typedef EffectHandler(StreamIterator itr, Task task);
+typedef void EffectHandler(StreamIterator itr, Task task);
 
 class Task {
   static Map<int, Task> taskMap = {};
-  int taskId;
+  final int taskId;
 
   static int _taskIdSeed = 0;
   Isolate _isolate;
+  Isolate get isolate => _isolate;
   SendPort _sendToChildPort;
   EffectHandler _handleEvent;
   Function _saga;
@@ -47,13 +48,13 @@ class Task {
   }
 
   // still running on parent isolate
-  Task(this._saga, this._sagaParam, this._handleEvent) {
-    this.taskId = Task._taskIdSeed++;
+  Task(this._saga, this._sagaParam, this._handleEvent)
+      : this.taskId = Task._taskIdSeed++ {
     Task.taskMap[this.taskId] = this;
   }
 
   // still running on parent isolate
-  Future<Task> start() async {
+  Future<void> start() async {
     print("Task.start ${this.taskId}");
     ReceivePort onExitPort = new ReceivePort();
     ReceivePort onErrorPort = new ReceivePort();
@@ -80,9 +81,11 @@ class Task {
 
     this._isolate = await Isolate.spawn(
         Task._isolateHandler, isolateInvokeMessage,
-        paused: false,
+        paused: true,
         onExit: onExitPort.sendPort,
         onError: onErrorPort.sendPort);
+
+    this._isolate.resume(this._isolate.pauseCapability);
 
     if (await itr.moveNext()) {
       this._sendToChildPort = itr.current;
@@ -90,7 +93,9 @@ class Task {
       throw new Exception("Illegal stream state.");
     }
 
-    return this.._handleEvent(itr, this);
+    if (this._handleEvent != null) {
+      this._handleEvent(itr, this);
+    }
   }
 
   static handleError(Future future) => future

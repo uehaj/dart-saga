@@ -1,19 +1,30 @@
 import 'package:test/test.dart';
 import "dart:async";
+import "dart:isolate";
 
+import '../lib/src/effect.dart';
 import '../lib/src/task.dart';
+import '../lib/src/action.dart';
 
-saga1() async* {
-  yield null;
+PutEffect pe = new PutEffect(new Action("HOGE"));
+
+_saga1() async* {
+  yield pe;
+}
+
+StreamController _sc;
+void _handleEvent(StreamIterator<dynamic> itr, Task task) async {
+  while (await itr.moveNext()) {
+    _sc.add(itr.current);
+  }
+  _sc.close();
 }
 
 void main() {
   group('Task', () {
-    handleEvent(StreamIterator itr, Task task) {}
-
-    test('construct Task', () async {
-      final task1 = new Task(saga1, [], handleEvent);
-      final task2 = new Task(saga1, [], handleEvent);
+    test('call constructor', () async {
+      final task1 = new Task(_saga1, [], null);
+      final task2 = new Task(_saga1, [], null);
       expect(task1.taskId, isNot(task2.taskId));
       expect(Task.taskMap, contains(task1.taskId));
       expect(Task.taskMap, contains(task2.taskId));
@@ -30,9 +41,39 @@ void main() {
       expect(Task.taskMap, isNot(contains(task2.taskId)));
     });
 
-    test('start Task', () async {
-      final task1 = new Task(saga1, [], handleEvent)..start();
-      // final task2 = task1.;
+    test('start and cancel', () async {
+      int length0 = Task.taskMap.entries.toList().length;
+      final task1 = new Task(_saga1, [], null);
+      await task1.start();
+
+      expect(Task.taskMap.entries.toList().length, equals(length0 + 1));
+      expect(Task.taskMap, contains(task1.taskId));
+      expect(task1.isolate, isNot(Isolate.current));
+      expect(Isolate.current, isNotNull);
+      expect(task1.isolate, isNotNull);
+
+      task1.cancel();
+      expect(Task.taskMap.entries.toList().length, equals(length0));
+
+      expect(Task.taskMap, isNot(contains(task1.taskId)));
     });
+  });
+
+  test('start and ping', () async {
+    final task1 = new Task(_saga1, [], null);
+    await task1.start();
+    ReceivePort rp = new ReceivePort();
+    task1.isolate.ping(rp.sendPort, response: "hello");
+    expect(rp, emits("hello"));
+    task1.cancel();
+  });
+
+  test('handle event', () async {
+    expect(pe, equals(pe));
+    _sc = new StreamController();
+    expect(_sc.stream, emits(equals(pe)));
+    final task1 = new Task(_saga1, [], _handleEvent);
+    await task1.start();
+    task1.cancel();
   });
 }

@@ -1,5 +1,6 @@
-import 'package:test/test.dart';
 import "dart:async";
+
+import 'package:test/test.dart';
 
 import '../lib/src/effect.dart';
 

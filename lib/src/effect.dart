@@ -24,6 +24,9 @@ class TakeLatestEffect extends Effect {
 class PutEffect extends Effect {
   Action action;
   PutEffect(this.action);
+  bool operator ==(other) {
+    return (other is PutEffect && other.action == this.action);
+  }
 }
 
 class ForkEffect extends Effect {
