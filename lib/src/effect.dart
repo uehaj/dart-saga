@@ -12,8 +12,10 @@ class TakeEffect extends Effect {
 }
 
 class TakeEveryEffect extends Effect {
-  Action action;
-  TakeEveryEffect(this.action);
+  String actionType;
+  Function saga;
+
+  TakeEveryEffect(this.actionType, this.saga);
 }
 
 class TakeLatestEffect extends Effect {
@@ -32,8 +34,6 @@ class PutEffect extends Effect {
 class ForkEffect extends Effect {
   Function saga;
   Object params;
-  //int perentTaskId;
-
   Completer<int> completer;
 
   ForkEffect(this.saga, [this.params, this.completer]);

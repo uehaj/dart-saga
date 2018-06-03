@@ -55,7 +55,6 @@ class Task {
 
   // still running on parent isolate
   Future<void> start() async {
-    print("Task.start ${this.taskId}");
     ReceivePort onExitPort = new ReceivePort();
     ReceivePort onErrorPort = new ReceivePort();
     ReceivePort fromChild = new ReceivePort();
@@ -116,15 +115,18 @@ class Task {
 
     // directly handle effects from the saga.
     await for (var effect in sagaStream) {
-      if (effect is PutEffect || effect is TakeEveryEffect) {
+      print("_isolatehandler ${effect}");
+      if (effect is PutEffect) {
         sendToParentPort.send(effect);
       } else if (effect is ForkEffect) {
-        //effect.perentTaskId = params.taskId;
         await Task.handleError(
             Task._fork(effect, sendToParentPort, receiveFromParent));
       } else if (effect is TakeEffect) {
         await Task.handleError(
             Task._take(effect, sendToParentPort, receiveFromParent));
+      } else if (effect is TakeEveryEffect) {
+        await Task.handleError(
+            Task._takeEvery(effect, sendToParentPort, receiveFromParent));
       } else if (effect is CallableEffect) {
         await Task.handleError(effect.call());
       } else if (effect is CancelEffect) {
@@ -157,6 +159,38 @@ class Task {
         completer.complete(takenAction);
       }
     }
+  }
+
+  static Stream _takeEveryHelper(actionType, saga) async* {
+    while (true) {
+      Completer completer = new Completer();
+      yield TakeEffect(actionType, completer);
+      var takenAction = await completer.future;
+      yield ForkEffect(saga, [takenAction.payload]);
+    }
+  }
+
+  static Future<void> _takeEvery(
+      TakeEveryEffect effect, sendToParentPort, receiveFromParent) async {
+    ForkEffect forkEffect =
+        new ForkEffect(_takeEveryHelper, [effect.actionType, effect.saga]);
+    Task._fork(forkEffect, sendToParentPort, receiveFromParent);
+  }
+
+  static Stream _takeLatestHelper(actionType, saga) async* {
+    while (true) {
+      Completer completer = new Completer();
+      yield TakeEffect(actionType, completer);
+      var takenAction = await completer.future;
+      yield ForkEffect(saga, [takenAction.payload]);
+    }
+  }
+
+  static Future<void> _takeLatest(
+      TakeLatestEffect effect, sendToParentPort, receiveFromParent) async {
+    ForkEffect forkEffect =
+        new ForkEffect(_takeLatestHelper, [effect.actionType, effect.saga]);
+    Task._fork(forkEffect, sendToParentPort, receiveFromParent);
   }
 
   static Future<void> _cancel(CancelEffect effect, sendToParentPort) async {

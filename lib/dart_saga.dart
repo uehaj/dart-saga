@@ -20,7 +20,7 @@ class take extends TakeEffect {
 }
 
 class takeEvery extends TakeEveryEffect {
-  takeEvery(action) : super(action);
+  takeEvery(actionType, saga) : super(actionType, saga);
 }
 
 class takeLatest extends TakeLatestEffect {

@@ -17,8 +17,6 @@ class EffectDispatcher {
         this._put(effect);
       } else if (effect is TakeEffect) {
         this._take(effect, task);
-      } else if (effect is TakeEveryEffect) {
-        /**/
       } else if (effect is ForkEffect) {
         this._fork(effect, task);
       } else if (effect is CancelEffect) {
