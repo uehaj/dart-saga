@@ -19,8 +19,10 @@ class TakeEveryEffect extends Effect {
 }
 
 class TakeLatestEffect extends Effect {
-  Action action;
-  TakeLatestEffect(this.action);
+  String actionType;
+  Function saga;
+
+  TakeLatestEffect(this.actionType, this.saga);
 }
 
 class PutEffect extends Effect {

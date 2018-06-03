@@ -2,17 +2,17 @@
 
 [英語](README.md)
 
-Dart-SagaはRedux-sagaのDartへの移植版です。
+Dart-Saga は Redux-saga の Dart への移植版です。
 
-このライブラリは、チャンネルを通じたDartのアイソレート間の協調をサポートします。
+このライブラリは、チャンネルを通じた Dart のアイソレート間の協調をサポートします。
 
-単独で動作しますが、今後dart-reduxに組込まれる予定です
+単独で動作しますが、今後 dart-redux に組込まれる予定です
 
-dart-saga(及びredux-saga)の目的は、アプリケーションの副作用、たとえば非同期処理や非純粋操作などを容易かつ効率的に実行し、テストを完結にしたり、失敗をより良く扱うことです。
+dart-saga(及び redux-saga)の目的は、アプリケーションの副作用、たとえば非同期処理や非純粋操作などを容易かつ効率的に実行し、テストを完結にしたり、失敗をより良く扱うことです。
 
-redux-sagaはES6ジェネレータを用いたコルーチンを並行処理の基盤としていますが、dart-sagaではDartのアイソレートとストリームを使用します。これはDartの流儀に馴染み、自然であり実装を容易にしてもいます。とはいえ、dart-sagaのAPI上は、アイソレートやストリームを意識する必要はありません。
+redux-saga は ES6 ジェネレータを用いたコルーチンを並行処理の基盤としていますが、dart-saga では Dart のアイソレートとストリームを使用します。これは Dart の流儀に馴染み、自然であり実装を容易にしてもいます。とはいえ、dart-saga の API 上は、アイソレートやストリームを意識する必要はありません。
 
-dart-sagaは、低レベルなDartのアイソレートやストリームの操作を抽象化・隠蔽する、上位のライブラリ層だと言うこともできるでしょう。
+dart-saga は、低レベルな Dart のアイソレートやストリームの操作を抽象化・隠蔽する、上位のライブラリ層だと言うこともできるでしょう。
 
 _注意_: このパッケージは開発中であり、多くの機能がまだ利用できません。[フィードバック](https://github.com/uehaj/dart-saga/issues)や[プルリクエスト](https://github.com/uehaj/dart-saga/pulls)を歓迎します。
 
@@ -93,7 +93,7 @@ Task(taskId=1) terminated: null.
 Task(taskId=0) terminated: null.
 ```
 
-# Redux-Sagaのエフェクト実装状況
+# Redux-Saga のエフェクト実装状況
 
 * [x] take
 * [ ] takeMaybe
@@ -115,15 +115,15 @@ Task(taskId=0) terminated: null.
 * [ ] getContext
 * [ ] setContext,
 * [ ] retry
-* [ ] takeEvery
-* [ ] takeLatest
+* [x] takeEvery
+* [x] takeLatest
 * [ ] takeLeading
 * [ ] throttle
 * [x] delay
 
 # 仕様上の制約
 
-Dartのジェネレータおよび非同期ジェネレータでは、Dartの言語仕様上yieldが[値を返すことはできません](https://github.com/dart-lang/sdk/issues/32831)(PythonやES2015では可能)。このライブラリではエフェクトのyieldで値を取得するためにCompleterを使用します。
+Dart のジェネレータおよび非同期ジェネレータでは、Dart の言語仕様上 yield が[値を返すことはできません](https://github.com/dart-lang/sdk/issues/32831)(Python や ES2015 では可能)。このライブラリではエフェクトの yield で値を取得するために Completer を使用します。
 
 たとえば、
 
@@ -137,4 +137,3 @@ Dartのジェネレータおよび非同期ジェネレータでは、Dartの言
   Completer<int> sagaHandle = new Completer();
   yield fork(saga2, [], sagaHandle);
 ```
-

@@ -100,6 +100,7 @@ class Task {
   static handleError(Future future) => future
     ..catchError((e) {
       print("Async error on child isolate: ${e}");
+      print(e.stackTrace);
     });
 
   // now running on child isolate
@@ -127,6 +128,9 @@ class Task {
       } else if (effect is TakeEveryEffect) {
         await Task.handleError(
             Task._takeEvery(effect, sendToParentPort, receiveFromParent));
+      } else if (effect is TakeLatestEffect) {
+        await Task.handleError(
+            Task._takeLatest(effect, sendToParentPort, receiveFromParent));
       } else if (effect is CallableEffect) {
         await Task.handleError(effect.call());
       } else if (effect is CancelEffect) {
@@ -139,11 +143,13 @@ class Task {
 
   static Future<void> _fork(
       ForkEffect effect, sendToParentPort, receiveFromParent) async {
+    Completer completer = effect.completer;
+    effect.completer = null; // this is needed to avoid serialize error.
     sendToParentPort.send(effect);
     if (await receiveFromParent.moveNext()) {
       var taskId = receiveFromParent.current;
-      if (effect.completer != null) {
-        effect.completer.complete(taskId);
+      if (completer != null) {
+        completer.complete(taskId);
       }
     }
   }
@@ -178,11 +184,17 @@ class Task {
   }
 
   static Stream _takeLatestHelper(actionType, saga) async* {
+    int currentTaskId = null;
     while (true) {
       Completer completer = new Completer();
       yield TakeEffect(actionType, completer);
       var takenAction = await completer.future;
-      yield ForkEffect(saga, [takenAction.payload]);
+      Completer<int> taskIdFuture = new Completer();
+      yield ForkEffect(saga, [takenAction.payload], taskIdFuture);
+      if (currentTaskId != null) {
+        yield CancelEffect(currentTaskId);
+      }
+      currentTaskId = await taskIdFuture.future;
     }
   }
 

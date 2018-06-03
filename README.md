@@ -13,7 +13,6 @@ dart-saga (and redux-saga) is a library that aims to make application side effec
 
 redux-saga uses co-routine with generator function as a concurrency basis but this library uses isolates insteads and streams. so implementation is very simple and suit with Dart way.
 
-
 Dart-saga can be regarded as a library that abstracts and hides low-level dart isolates and streaming operations.
 
 _Note_: This package is still under development, and many of functionality might not be available yet. [Feedback](https://github.com/uehaj/dart-saga/issues) and [Pull Requests](https://github.com/uehaj/dart-saga/pulls) are most welcome!
@@ -66,7 +65,6 @@ main() {
   var effectManager = new EffectManager();
   effectManager.run(rootSaga, ["start rootSaga", "hello"]);
 }
-
 ```
 
 ### Demo
@@ -118,8 +116,8 @@ Task(taskId=0) terminated: null.
 * [ ] getContext
 * [ ] setContext,
 * [ ] retry
-* [ ] takeEvery
-* [ ] takeLatest
+* [x] takeEvery
+* [x] takeLatest
 * [ ] takeLeading
 * [ ] throttle
 * [x] delay
@@ -137,7 +135,6 @@ In the case you want to write:
 
 ```
   int sagaHandle = yield fork(saga2, []);
-
 ```
 
 You have to write:
@@ -145,6 +142,4 @@ You have to write:
 ```
   Completer<int> sagaHandle = new Completer();
   yield fork(saga2, [], sagaHandle);
-
 ```
-

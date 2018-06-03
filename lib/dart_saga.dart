@@ -24,7 +24,7 @@ class takeEvery extends TakeEveryEffect {
 }
 
 class takeLatest extends TakeLatestEffect {
-  takeLatest(action) : super(action);
+  takeLatest(actionType, saga) : super(actionType, saga);
 }
 
 class put extends PutEffect {
@@ -36,7 +36,7 @@ class fork extends ForkEffect {
 }
 
 class cancel extends CancelEffect {
-  cancel(taskIdFuture) : super(taskIdFuture);
+  cancel(taskId) : super(taskId);
 }
 
 class call<T> extends CallEffect<T> {
