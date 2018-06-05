@@ -1,8 +1,7 @@
 import './dispatcher.dart';
 
 class EffectManager {
-  // running on main _isolate
-  void run(Function rootSaga, [List<dynamic> param]) {
+  void run(Function rootSaga, [List<dynamic> param = const []]) {
     new EffectDispatcher().run(rootSaga, param);
   }
 }

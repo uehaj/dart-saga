@@ -13,6 +13,7 @@ _saga1() async* {
 }
 
 StreamController _sc;
+
 void _handleEvent(StreamIterator<dynamic> itr, Task task) async {
   while (await itr.moveNext()) {
     _sc.add(itr.current);
@@ -69,9 +70,14 @@ void main() {
   });
 
   test('handle event', () async {
-    expect(pe, equals(pe));
     _sc = new StreamController();
-    expect(_sc.stream, emits(equals(pe)));
+    expect(
+        _sc.stream,
+        emitsInOrder([
+          emits(equals(pe)),
+          emits(new isInstanceOf<CancelEffect>()),
+          emitsDone
+        ]));
     final task1 = new Task(_saga1, [], _handleEvent);
     await task1.start();
     task1.cancel();

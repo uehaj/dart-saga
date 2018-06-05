@@ -10,7 +10,7 @@ class EffectDispatcher {
       new Task(saga, sagaParam, this._handleEvent)..start();
 
   void _handleEvent(StreamIterator<dynamic> itr, Task task) async {
-    // effects which received from child isolate through Port.
+    // handle effects which received from child isolate through Port.
     while (await itr.moveNext()) {
       Effect effect = itr.current;
       if (effect is PutEffect) {

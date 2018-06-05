@@ -5,16 +5,6 @@ export 'src/manager.dart';
 export 'src/action.dart';
 export 'src/effect.dart';
 
-/*
-typedef TakeEffect take;
-typedef TakeEveryEffect takeEvery;
-typedef PutEffect put;
-typedef ForkEffect fork;
-typedef CancelEffect cancel;
-typedef AsyncCallEffect<T> asynCall;
-typedef WaitEffect<T> wait;
-*/
-
 class take extends TakeEffect {
   take(actionType, [completer]) : super(actionType, completer);
 }

@@ -96,33 +96,35 @@ Task(taskId=0) terminated: null.
 
 # Implemented Redux-Saga's Effects
 
-* [x] take
-* [ ] takeMaybe
-* [x] put
-* [ ] putResolve
-* [ ] all
-* [ ] race
-* [x] call
-* [ ] apply
-* [ ] cps
-* [x] fork
-* [ ] spawn
-* [ ] join
-* [x] cancel
-* [ ] select
-* [ ] actionChannel
-* [ ] cancelled
-* [ ] flush
-* [ ] getContext
-* [ ] setContext,
-* [ ] retry
-* [x] takeEvery
-* [x] takeLatest
-* [ ] takeLeading
-* [ ] throttle
-* [x] delay
+- [x] take
+- [ ] takeMaybe
+- [x] put
+- [ ] putResolve
+- [ ] all
+- [ ] race
+- [x] call
+- [ ] apply
+- [ ] cps
+- [x] fork
+- [ ] spawn
+- [ ] join
+- [x] cancel
+- [ ] select
+- [ ] actionChannel
+- [ ] cancelled
+- [ ] flush
+- [ ] getContext
+- [ ] setContext,
+- [ ] retry
+- [x] takeEvery
+- [x] takeLatest
+- [ ] takeLeading
+- [ ] throttle
+- [x] delay
 
 # Restrictions
+
+## Yield is statement, not expression
 
 Dart's generator/async generator lacks ability to return value from `yield` constructs.
 In both of ES2015 and Python, `yield` is an expression, but in Dart, it's statement, so we cannot get any value from effect directly.
@@ -143,3 +145,7 @@ You have to write:
   Completer<int> sagaHandle = new Completer();
   yield fork(saga2, [], sagaHandle);
 ```
+
+## Protection between Isolates
+
+It is not possible to cross Isolates, share a Completer and fire a Future.

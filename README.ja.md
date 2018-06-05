@@ -95,33 +95,35 @@ Task(taskId=0) terminated: null.
 
 # Redux-Saga のエフェクト実装状況
 
-* [x] take
-* [ ] takeMaybe
-* [x] put
-* [ ] putResolve
-* [ ] all
-* [ ] race
-* [x] call
-* [ ] apply
-* [ ] cps
-* [x] fork
-* [ ] spawn
-* [ ] join
-* [x] cancel
-* [ ] select
-* [ ] actionChannel
-* [ ] cancelled
-* [ ] flush
-* [ ] getContext
-* [ ] setContext,
-* [ ] retry
-* [x] takeEvery
-* [x] takeLatest
-* [ ] takeLeading
-* [ ] throttle
-* [x] delay
+- [x] take
+- [ ] takeMaybe
+- [x] put
+- [ ] putResolve
+- [ ] all
+- [ ] race
+- [x] call
+- [ ] apply
+- [ ] cps
+- [x] fork
+- [ ] spawn
+- [ ] join
+- [x] cancel
+- [ ] select
+- [ ] actionChannel
+- [ ] cancelled
+- [ ] flush
+- [ ] getContext
+- [ ] setContext,
+- [ ] retry
+- [x] takeEvery
+- [x] takeLatest
+- [ ] takeLeading
+- [ ] throttle
+- [x] delay
 
 # 仕様上の制約
+
+## yield が値を返さない
 
 Dart のジェネレータおよび非同期ジェネレータでは、Dart の言語仕様上 yield が[値を返すことはできません](https://github.com/dart-lang/sdk/issues/32831)(Python や ES2015 では可能)。このライブラリではエフェクトの yield で値を取得するために Completer を使用します。
 
@@ -137,3 +139,8 @@ Dart のジェネレータおよび非同期ジェネレータでは、Dart の�
   Completer<int> sagaHandle = new Completer();
   yield fork(saga2, [], sagaHandle);
 ```
+
+## Isolate 間の保護
+
+Isolate 間ではメモリは共有できません。1 つの Isolate で Completeter から他の Isolate で待ち受ける Future
+を発火させることはできません。
